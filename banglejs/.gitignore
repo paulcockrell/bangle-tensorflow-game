@@ -1,0 +1,7 @@
+node_modules/
+.DS_Store
+.vscode/
+sketch/
+package-lock.json
+examples/game/data/
+examples/harry-potter/data/

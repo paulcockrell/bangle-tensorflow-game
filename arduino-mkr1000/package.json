@@ -1,0 +1,22 @@
+{
+  "name": "arduino-ml-gesture-recognition",
+  "version": "1.0.0",
+  "description": "Gesture recognition with Johnny-Five, Arduino and Tensorflow.js",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Charlie Gerard <charlie.a.gerard@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "@tensorflow/tfjs": "^1.2.5",
+    "@tensorflow/tfjs-node": "^1.2.5",
+    "etherport-client": "^0.1.4",
+    "express": "^4.17.1",
+    "fs-promise": "^2.0.3",
+    "johnny-five": "^1.1.0",
+    "line-reader": "*",
+    "serialport": "^7.1.5",
+    "socket.io": "^2.2.0"
+  }
+}

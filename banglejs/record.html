@@ -1,0 +1,120 @@
+<html>
+ <head>
+   <style>
+     body { margin:0;  }
+     svg {
+       display:block; position:absolute;
+       top:0%; left:0%; width:100%; height:100%;
+     }
+   </style>    
+ </head>
+ <body>
+  <h1>BangleJS Gesture Recorder</h1>
+  <label for="gesture">Enter gesture name:</label>
+  <input type="text" id="gesture"/>
+  <br/>
+  <label for="samplesize">Sample size</label>
+  <select id="samplesize">
+	  <option name="20" value="20">20</option>
+	  <option name="30" value="30">30</option>
+	  <option name="40" value="40">40</option>
+	  <option name="50" value="50">50</option>
+  </select>
+  <br/>
+  <button onclick="connect()">Connect</button>
+  <button onclick="disconnect()">Disconnect</button>
+  <br/>
+  <div id="status">Disconnected</div>
+  <div id="gestureCount"></div>
+  <div id="results" style="border:1px dashed red"></div>
+
+  <script src="https://www.puck-js.com/puck.js"></script>
+  <script type="text/javascript">
+    const gestureEl = document.getElementById("gesture");
+    const gestureCountEl = document.getElementById("gestureCount");
+    const statusEl = document.getElementById("status");
+    const resultsEl = document.getElementById("results");
+    const sampleSizeEl = document.getElementById("samplesize");
+    const storage = window.localStorage;
+
+    let gestureCount = 0;
+    let storageKey, connection;
+
+    // Called when we get a line of data - updates the dom element
+    function onGesture(v) {
+      const gestureName = gestureEl.value;
+      const sampleSize = parseInt(sampleSizeEl.value);
+      const re = new RegExp(`^${gestureName}`, 'g');
+
+      if (v.match(re)) {
+        const gestures = storage.getItem(storageKey) || "";
+        storage.setItem(storageKey, `${gestures}\n${v}`);
+
+        resultsEl.innerHTML += v;
+
+        gestureCount++;
+        gestureCountEl.innerHTML = `Recorded ${gestureCount} of ${sampleSizeEl.value}`
+        if (gestureCount === sampleSize) {
+          statusEl.innerHTML = "Gesture recording completed. Bangle will disconnect"
+          disconnect();
+        }
+      }
+    }
+
+    const disconnect = function() {
+      if (connection) {
+        connection.close();
+        connection = undefined;
+        statusEl.innerHTML = "Disconnected";
+      }
+    }
+
+    const connect = function() {
+      const gestureName = gestureEl.value;
+      if (!gestureName || gestureName.length <= 0) {
+	      alert("Please enter a gesture name");
+	      return;
+      }
+
+      storageKey = `gesture_${gestureName}`;
+
+      if (connection) {
+        connection.close();
+        connection = undefined;
+      }
+
+      Puck.connect(function(c) {
+        if (!c) {
+          statusEl.innerHTML = "Disconnected";
+          alert("Couldn't connect!");
+          return;
+        }
+
+        statusEl.innerHTML = "Connected";
+        connection = c;
+        // Handle the data we get back, and call 'onGesture'
+        // whenever we get a line
+        var buf = "";
+        connection.on("data", function(d) {
+          buf += d;
+          let i = buf.indexOf("\n");
+          while (i>=0) {
+            onGesture(buf.substr(0,i));
+            buf = buf.substr(i+1);
+            i = buf.indexOf("\n");
+          }
+        });
+
+        // First, reset Puck.js
+        connection.write("reset();\n", function() {
+          // Wait for it to reset itself
+          const gestureProgram = "Bangle.on('gesture', (g) => Bluetooth.println('" + gestureName + "('+g.length/3+'),'+g.slice().join(','))); }); NRF.on('disconnect', function() { reset() });\n";
+          setTimeout(function() {
+            connection.write(gestureProgram, () => statusEl.innerHTML = "Ready... Begin moving the watch and the gesture will appear below");
+          }, 1500);
+        });
+      });
+    };
+  </script>
+ </body>
+</html>
