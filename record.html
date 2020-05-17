@@ -1,0 +1,141 @@
+<html>
+    <head>
+        <link rel="icon" type="image/ico" href="favicon.ico"/>
+        <link rel="stylesheet" href="https://unpkg.com/purecss@2.0.3/build/pure-min.css" integrity="sha384-cg6SkqEOCV1NbJoCu11+bm0NvBRc8IYLRGXkmNrqUBfTjmMYwNKPWBTIKyw9mHNJ" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://unpkg.com/purecss@2.0.3/build/grids-responsive-min.css">
+        <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
+        <link rel="stylesheet" href="styles.css">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            body { margin:0;  }
+            svg {
+              display:block; position:absolute;
+              top:0%; left:0%; width:100%; height:100%;
+            }
+        </style>    
+    </head>
+    <body>
+        <div class="header">
+            <div class="home-menu pure-menu pure-menu-horizontal pure-menu-fixed">
+                <a class="pure-menu-heading" href="https://paulcockrell.github.io">Lockdown project diary</a>
+            </div>
+        </div>
+
+        <div class="content-wrapper">
+            <div class="content">
+                <h2 class="content-head is-center">Step #1. Record gestures</h2>
+
+                <div class="pure-g">
+                    <div class="l-box-lrg pure-u-1 pure-u-md-2-5">
+                        <form class="pure-form pure-form-stacked">
+                            <fieldset>
+                                <label for="gesture">Gesture name</label>
+                                <input id="gesture" type="text" placeholder="Punch" />
+
+                                <label for="samplesize">Sample size</label>
+                                <select id="samplesize">
+                                    <option name="5" value="5">5</option>
+                                    <option name="10" value="10">10</option>
+                                    <option name="20" value="20" selected>20</option>
+                                    <option name="30" value="30">30</option>
+                                    <option name="40" value="40">40</option>
+                                    <option name="50" value="50">50</option>
+                                </select>
+
+                                <button id="recordBtn" class="pure-button">Record gesture</button>
+                                <button id="nextBtn" class="pure-button button-success" disabled>Start training</button>
+                            </fieldset>
+                        </form>
+                    </div>
+
+                    <div class="l-box-lrg pure-u-1 pure-u-md-3-5">
+                        <h4>Guide</h4>
+                        <p>
+                            Fill out the form, specify a gesture name, and the number of times you want to record that same gesture.
+                            The more gestures you record, the better the end result will be for the AI model. You <strong>must</strong>
+                            record <strong>TWO</strong> or more gestures (kind of obvious, but still...).
+                        </p>
+
+                        <h4>Notes</h4>
+                        <p>
+                            You can record as many different gestures as you like, once you have finished record one gesture, enter a
+                            <strong>new unique gesture name</strong> and hit the record button.
+                        </p>
+                        <p>
+                            Make sure your gestures are quick (1-2 seconds in length) and are clear actions (not little twitches)
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="feedback" class="ribbon ribbon-neutral l-box-lrg pure-g">
+                <div class="is-center pure-u-1 pure-u-md-1-2 pure-u-lg-2-5">
+                    <h2 class="content-head-ribbon">Gesture count</h2>
+                    <p>
+                        <div id="gestureCount">0</div>
+                    </p>
+                </div>
+
+                <div class="pure-u-1 pure-u-md-1-2 pure-u-lg-3-5">
+                    <h2 class="content-head-ribbon">Bangle feedback instructions</h2>
+                    <p>
+                        <span id="status">Disconnected</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="content">
+                <h3 class="content-head is-center">BangleJS gesture readings</h2>
+
+                <div class="pure-g">
+                    <div class="l-box-lrg pure-u-1">
+                        <p class="is-center">Your gesture readings will appear here once you begin recording</p>
+                        <textarea id="results"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer l-box is-center">
+            &copy; 2020 Paul Cockrell
+        </div>
+
+        <script src="https://www.puck-js.com/puck.js"></script>
+
+        <script type="module">
+            import record from './record.mjs';
+
+            const STORAGE_KEY = 'gesture-banglejs';
+
+            const nextBtn = document.getElementById("nextBtn");
+            const sampleSizeEl = document.getElementById("samplesize");
+
+            // Clear last records if exists
+            localStorage.removeItem("gesture-banglejs")
+
+            recordBtn.onclick = (e) => {
+                e.preventDefault();
+                record.setup({
+                  storageKey: STORAGE_KEY,
+                  sampleSize: parseInt(sampleSizeEl.value),
+                });
+
+                record.record();
+            };
+
+            nextBtn.onclick = (e) => {
+                e.preventDefault();
+                const url = `train.html?storageKey=${e.target.dataset.storagekey}&sampleSize=${e.target.dataset.samplesize}`;
+                window.location = url;
+            }
+
+            // When recording completed, disconnect from watch and start training
+            document.addEventListener("recordCompleted", (e) => {
+                nextBtn.setAttribute('data-storagekey', e.detail.storageKey);
+                nextBtn.setAttribute('data-samplesize', e.detail.sampleSize);
+                nextBtn.removeAttribute("disabled");
+                recordBtn.removeAttribute("disabled");
+            });
+        </script>
+    </body>
+</html>

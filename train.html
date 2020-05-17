@@ -1,0 +1,112 @@
+<html>
+    <head>
+        <link rel="icon" type="image/ico" href="favicon.ico"/>
+        <link rel="stylesheet" href="https://unpkg.com/purecss@2.0.3/build/pure-min.css" integrity="sha384-cg6SkqEOCV1NbJoCu11+bm0NvBRc8IYLRGXkmNrqUBfTjmMYwNKPWBTIKyw9mHNJ" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://unpkg.com/purecss@2.0.3/build/grids-responsive-min.css">
+        <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
+        <link rel="stylesheet" href="styles.css">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            body { margin:0;  }
+            svg {
+              display:block; position:absolute;
+              top:0%; left:0%; width:100%; height:100%;
+            }
+        </style>    
+    </head>
+    <body>
+        <div class="header">
+            <div class="home-menu pure-menu pure-menu-horizontal pure-menu-fixed">
+                <a class="pure-menu-heading" href="https://paulcockrell.github.io">Lockdown project diary</a>
+            </div>
+        </div>
+
+        <div class="content-wrapper">
+            <div class="content">
+                <h2 class="content-head is-center">Step #2. Train model</h2>
+                <div class="pure-g">
+                    <div class="l-box-lrg pure-u-1">
+                        <p>
+                            Now we will use TensorflowJS to train a model based on our readings and their labels.
+                        </p>
+                        <p>
+                            You will see graphs appear when the training starts giving you an idea of how it is doing with its predictions.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="pure-g">
+                    <div class="l-box-lrg pure-u-1 pure-u-md-2-5">
+                        <form class="pure-form pure-form-stacked">
+                            <fieldset>
+                                <button id="trainBtn" class="pure-button">Train</button>
+                                <button id="nextBtn" disabled="true" class="pure-button button-success">Next</button>
+                            </fieldset>
+                        </form>
+                        Training status: <span id="status">Not started</span>
+                    </div>
+                    <div id="tensorflow" class="l-box-lrg pure-u-1 pure-u-md-3-5">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer l-box is-center">
+            &copy; 2020 Paul Cockrell
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.0.0/dist/tf.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis@1.0.2/dist/tfjs-vis.umd.min.js"></script>
+
+        <script type="module">
+            import train from './train.mjs';
+
+            const trainBtn = document.getElementById("trainBtn");
+            const nextBtn = document.getElementById("nextBtn");
+            const statusEl = document.getElementById("status");
+
+            const queryString = window.location.search;
+            const urlParams = new URLSearchParams(queryString);
+            const storageKey = urlParams.get('storageKey');
+            const sampleSize = parseInt(urlParams.get('sampleSize'));
+
+            trainBtn.onclick = (e) => {
+                e.preventDefault();
+                trainBtn.setAttribute("disabled", true);
+
+                statusEl.innerHTML = "In progress, please wait this may take a while";
+
+                train.setup({storageKey, sampleSize});
+                train.readStorage()
+                    .then(({ gestureClasses, data }) => {
+                        const values = {
+                            values: data.map(d => d.features.map((y, x) => ({ x, y, }))),
+                            series: data.map(d => gestureClasses[d.label]),
+                        };
+
+                        // Render gesture chart
+                        tfvis.render.linechart({ name: "Gestures", tab: "Charts" }, values);
+
+                        return train.format(data);
+                    })
+                    .then(({ modelKey, gestureClasses }) => {
+                        const url = `predict.html?modelKey=${modelKey}&gestures=${gestureClasses.join(",")}`;
+
+                        trainBtn.removeAttribute("disabled");
+                        nextBtn.removeAttribute("disabled");
+                        nextBtn.onclick = (e) => {
+                            e.preventDefault();
+                            window.location = url; 
+                        }
+
+                        statusEl.innerHTML = "Training completed! Click the next button to move on to predicting"
+                    })
+                    .catch(e => {
+                        alert("Training failed", e)
+                        trainBtn.removeAttribute("disabled");
+                        nextBtn.setAttribute("disabled", true);
+                    });
+            }
+        </script>
+    </body>
+</html>
