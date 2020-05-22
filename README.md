@@ -6,7 +6,7 @@ This is an experimental repository to see how to go about training models to rec
 
 ### Setup
 
-Visit [https://paulcockrell.github.io/banglejs-tensorflow-example/](BangleJS Tensorflow Example) to begin, or to run locally clone and run a local webserver to serve the project e.g [https://www.npmjs.com/package/http-server](HttpServer). There are no server-side processes to be concerned with, this is purely all done in the browser (Google Chrome).
+Visit https://paulcockrell.github.io/banglejs-tensorflow-example/ to begin, or to run locally clone and run a local webserver to serve the project e.g https://www.npmjs.com/package/http-server. There are no server-side processes to be concerned with, this is purely all done in the browser (Google Chrome).
 
 ### Process
 #### Recording gestures
