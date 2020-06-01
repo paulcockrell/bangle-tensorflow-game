@@ -31,6 +31,7 @@
                 <div class="pure-g">
                     <div class="l-box-lrg pure-u-1 is-center">
                         <button id="startBtn" class="pure-button button-success">Start</button>
+                        <button id="downloadBtn" class="pure-button button-warning">Download model</button>
                     </div>
                 </div>
 
@@ -60,12 +61,13 @@
         </div>
 
         <script src="https://www.puck-js.com/puck.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.0.0/dist/tf.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
 
         <script type="module">
           import predict from './predict.mjs';
 
           const startBtn = document.getElementById("startBtn");
+          const downloadBtn = document.getElementById("downloadBtn");
           const statusEl = document.getElementById("status");
 
           const queryString = window.location.search;
@@ -81,6 +83,16 @@
                   gestureClasses: gestureClasses,
               };
               predict.setup(opts).then(predict.connect)
+          }
+
+          downloadBtn.onclick = (e) => {
+              e.preventDefault();
+
+              const opts = {
+                  modelKey: modelKey,
+                  gestureClasses: gestureClasses,
+              };
+              predict.setup(opts).then(predict.download)
           }
           
           document.addEventListener("bangleConnected", () => {

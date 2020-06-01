@@ -1,4 +1,4 @@
-let model, statusEl, predictionsContainerEl, predictionsEl, connection, gestureClasses, feedbackEl;
+let modelKey, model, statusEl, predictionsContainerEl, predictionsEl, connection, gestureClasses, feedbackEl;
 
 const predict = (gesture) => {
     tf.tidy(() => {
@@ -88,7 +88,7 @@ const setup = async (opts) => {
     predictionsEl = document.getElementById("predictions");
     feedbackEl = document.getElementById("feedback");
 
-    const modelKey = opts.modelKey;
+    modelKey = opts.modelKey;
     gestureClasses = opts.gestureClasses;
 
     statusEl.innerHTML = "Loading model";
@@ -100,8 +100,16 @@ const setup = async (opts) => {
     if (!model) throw new Error(`Couldn't load model ${modelKey}`)
 }
 
+const download = async() => {
+    statusEl.innerHTML = "Downloading model";
+    const saveResults = await model.save(`downloads://${modelKey}`);
+    statusEl.innerHTML = "Downloaded model";
+    console.log("Model downloaded to local filesystem with name:", modelKey)
+}
+
 export default {
     setup: setup,
     connect: connect,
     predict: predict,
+    download: download,
 }
